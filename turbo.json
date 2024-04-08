@@ -12,6 +12,15 @@
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "storybook": {
+      "cache": false
+    },
+    "build:storybook": {
+      "outputs": ["storybook-static/**"]
+    },
+    "build:ui": {
+      "cache": false
     }
   }
 }

@@ -5,7 +5,10 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "storybook": "turbo run storybook",
+    "build:storybook": "turbo run build:storybook",
+    "build:ui": "turbo run build:ui"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
