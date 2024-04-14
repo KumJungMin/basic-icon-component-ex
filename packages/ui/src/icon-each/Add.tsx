@@ -16,14 +16,14 @@ export default IconWrapper("add", (props: ISvgIconProps) => (
     />
     <path
       d="M24 16V32"
-      stroke={props.colors[2]}
+      stroke={props.colors[0]}
       strokeWidth={props.strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <path
       d="M16 24L32 24"
-      stroke={props.colors[2]}
+      stroke={props.colors[0]}
       strokeWidth={props.strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"

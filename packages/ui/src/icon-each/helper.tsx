@@ -6,37 +6,26 @@ import React, {
   useMemo,
 } from "react";
 
-// Theme를 구분함
-export type Theme = "outline" | "filled";
-
 export interface ISvgIconProps {
   id: string;
-  size: number | string; // icon size
+  size: number | string; 
   strokeWidth: number;
-  colors: string[]; // icon color, fill, stroke의 색상을 지정함
+  colors: string[]; 
 }
 
 export interface IIconConfig {
   size: number | string;
   strokeWidth: number;
   prefix: string;
-  theme: Theme;
   colors: {
-    outline: {
-      fill: string;
-      background: string;
-    };
-    filled: {
-      fill: string;
-      background: string;
-    };
+    fill: string;
+    background: string;
   };
 }
 
 export interface IIconBase {
   size?: number | string;
   strokeWidth?: number;
-  theme?: Theme;
   fill?: string | string[];
 }
 
@@ -47,57 +36,61 @@ export type IIconProps = Intersection<
   HTMLAttributes<HTMLSpanElement>
 >;
 
+interface IIconClasses {
+  prefix: string;
+  name: string;
+  className?: string;
+}
+
 export type IconRender = (props: ISvgIconProps) => ReactElement;
 
 export type Icon = (props: IIconProps) => ReactElement;
 
 export const DEFAULT_ICON_CONFIGS: IIconConfig = {
   size: "12px",
-  strokeWidth: 4,
-  theme: "outline",
-  colors: {
-    outline: {
-      fill: "#333",
-      background: "transparent",
-    },
-    filled: {
-      fill: "#333",
-      background: "#FFF",
-    },
-  },
-  prefix: "i", // 아이콘의 클래스명을 지정함
+  strokeWidth: 2,
+  colors: { fill: "#333", background: "transparent" },
+  prefix: "i",
 };
+
+
+// Icon의 기본 설정을 저장함 - Context는 상태를 저장함 - provider는 상태를 제공함 - app단에 선언해 전역으로 사용함
+const IconContext = createContext(DEFAULT_ICON_CONFIGS);
+export const IconProvider = IconContext.Provider;
+
+export function IconWrapper(name: string, render: IconRender): Icon {
+  return (props: IIconProps) => {
+    const { size, strokeWidth, fill, className, ...extra } = props;
+
+    const ICON_CONFIGS = useContext(IconContext);
+    const id = useMemo(guid, []);
+
+    const svgProps = generateSvgProps( id,  { size,  strokeWidth,  fill, }, ICON_CONFIGS );
+    const cls= getClasses({ prefix: ICON_CONFIGS.prefix, name, className });
+
+    return (
+      <span {...extra} className={cls}>
+        {render(svgProps)}
+      </span>
+    );
+  };
+}
 
 function guid(): string {
   const id = (((1 + Math.random()) * 0x100000000) | 0).toString(16);
   return (`icon-${id}`);
 }
 
-export function IconConverter(
+function generateSvgProps(
   id: string,
   icon: IIconBase,
   config: IIconConfig
 ): ISvgIconProps {
   const fill = typeof icon.fill === "string" ? [icon.fill] : icon.fill || [];
-  const colors: string[] = [];
-
-  const theme: Theme = icon.theme || config.theme;
-
-  switch (theme) {
-    case "outline":
-      colors.push(typeof fill[0] === "string" ? fill[0] : "currentColor");
-      colors.push("none");
-      colors.push(typeof fill[0] === "string" ? fill[0] : "currentColor");
-      colors.push("none");
-      break;
-    case "filled":
-      colors.push(typeof fill[0] === "string" ? fill[0] : "currentColor");
-      colors.push(typeof fill[0] === "string" ? fill[0] : "currentColor");
-      colors.push("#FFF");
-      colors.push("#FFF");
-      break;
-  }
-
+  const colors = [
+    fill[0] || config.colors.fill,
+    fill[1] || config.colors.background,
+  ]
   return {
     size: icon.size || config.size,
     strokeWidth: icon.strokeWidth || config.strokeWidth,
@@ -106,41 +99,10 @@ export function IconConverter(
   };
 }
 
-// Icon의 기본 설정을 저장함 - Context는 상태를 저장함 - provider는 상태를 제공함 - app단에 선언해 전역으로 사용함
-const IconContext = createContext(DEFAULT_ICON_CONFIGS);
-export const IconProvider = IconContext.Provider;
+function getClasses({ prefix, name, className }: IIconClasses) {
+  const classes: string[] = [`${prefix}-icon`];
+  classes.push(`${prefix}-icon-${name}` );
+  if (className)  classes.push(className);
 
-export function IconWrapper(name: string, render: IconRender): Icon {
-  return (props: IIconProps) => {
-    const { size, strokeWidth, theme, fill, className, ...extra } = props;
-
-    const ICON_CONFIGS = useContext(IconContext);
-
-    const id = useMemo(guid, []);
-
-    const svgProps = IconConverter(
-      id,
-      {
-        size,
-        strokeWidth,
-        theme,
-        fill,
-      },
-      ICON_CONFIGS
-    );
-
-    const cls: string[] = [ICON_CONFIGS.prefix + "-icon"];
-
-    cls.push(ICON_CONFIGS.prefix + "-icon" + "-" + name);
-
-    if (className) {
-      cls.push(className);
-    }
-
-    return (
-      <span {...extra} className={cls.join(" ")}>
-        {render(svgProps)}
-      </span>
-    );
-  };
+  return classes.join(" ");
 }
